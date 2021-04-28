@@ -6,27 +6,30 @@ import (
 	"time"
 )
 
+const Layout = "2006-01-02"
+
 func validateInput(dateTime string) error {
-	layout := "2006-01-02"
-	_, err := time.Parse(layout, dateTime)
+	_, err := time.Parse(Layout, dateTime)
 	return err
 }
-func convertDatetimeString(ngay, thang, nam *int) (dateTime string, err error) {
+func validateData(ngay, thang, nam *int) error {
 	if ngay == nil && thang == nil && nam == nil {
-		return
+		return errors.New("")
 	}
-
 	if nam == nil {
-		err = errors.New("Year is not entered")
-		return
+		return errors.New("Year is not entered")
 	}
-
 	if thang == nil {
-		err = errors.New("Month is not entered")
-		return
+		return errors.New("Month is not entered")
 	}
 	if ngay == nil {
-		err = errors.New("Day is not entered")
+		return errors.New("Day is not entered")
+	}
+	return nil
+}
+func convertDatetimeString(ngay, thang, nam *int) (dateTime string, err error) {
+	err = validateData(ngay, thang, nam)
+	if err != nil {
 		return
 	}
 	dateTime = fmt.Sprintf("%04d-%02d-%02d", *nam, *thang, *ngay)
@@ -38,9 +41,9 @@ func convertDatetimeString(ngay, thang, nam *int) (dateTime string, err error) {
 }
 
 func main() {
-	ngay, thang, nam := 28, 2, 10000
+	ngay, nam := 29, 1200
 
-	dateTime, err := convertDatetimeString(&ngay, &thang, &nam)
+	dateTime, err := convertDatetimeString(&ngay, nil, &nam)
 
 	if err == nil {
 		fmt.Println(dateTime)
