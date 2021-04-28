@@ -10,9 +10,9 @@ func stringRepeat(listName1, listName2 []string) (result []string) {
 		m[v] = i
 	}
 	for _, v := range listName2 {
-		_, ok := m[v]
-		if ok {
+		if val, ok := m[v]; ok && val < 1 {
 			result = append(result, v)
+			m[v]++
 		}
 	}
 	return
@@ -21,7 +21,7 @@ func stringRepeat(listName1, listName2 []string) (result []string) {
 func main() {
 
 	listName1 := []string{"anna", "devoe", "flash", "iris", "kante", "kovakic"}
-	listName2 := []string{"kante", "namor", "elsa", "stark", "devoe"}
+	listName2 := []string{"kante", "namor", "elsa", "stark", "devoe","kante"}
 
 	fmt.Println(stringRepeat(listName1, listName2))
 
