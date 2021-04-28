@@ -7,7 +7,7 @@ import (
 func stringRepeat(listName1, listName2 []string) (result []string) {
 	m := make(map[string]int)
 	for i, v := range listName1 {
-		m[v] = i
+		m[v] = 0
 	}
 	for _, v := range listName2 {
 		if val, ok := m[v]; ok && val < 1 {
