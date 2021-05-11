@@ -1,20 +1,13 @@
 package main
 
 import (
-	"database/sql"
+	"test/router"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	db, err := sql.Open("sqlite3", "./foo.db")
-	checkErr(err)
-	defer db.Close()
 
-}
-
-func checkErr(err error) {
-	if err != nil {
-		panic(err)
-	}
+	r := router.NewRouter()
+	r.Engine.Run(":8080")
 }

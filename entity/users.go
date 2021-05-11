@@ -1,24 +1,11 @@
 package entity
 
+var AutoUID int = 1
+
 // Users struct
 type Users struct {
-	ID       int
-	Username string
-	Email    string
-	Password string
-}
-
-func (i *Users) QueryCreateTable() string {
-	query := `
-	DROP TABLE IF EXISTS users;
-	CREATE TABLE users (
-		id int(11) NOT NULL AUTO_INCREMENT,
-		username varchar(255) NOT NULL,
-		email varchar(255) NOT NULL,
-		password varchar(255) NOT NULL,
-		PRIMARY KEY (id)
-		)
-	`
-
-	return query
+	ID       int    `gorm:"column:id;primary_key;auto_increment;not null"`
+	Username string `gorm:"column:user_name;"`
+	Email    string `gorm:"column:email;not null"`
+	Password string `gorm:"column:password;not null"`
 }
