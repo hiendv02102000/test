@@ -1,30 +1,44 @@
 package db
 
 import (
+	"context"
 	"test/entity"
+	"time"
 
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Database struct {
-	DB *gorm.DB
+	Client *mongo.Client
+	DBName string
 }
 
 func NewDB() (Database, error) {
-	dsn := "go_test:go_test@tcp(127.0.0.1:3306)/go_test?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	db.Migrator().AutoMigrate(entity.Users{})
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	return Database{
-		DB: db,
-	}, err
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		return Database{}, err
+	}
+	return Database{Client: client,
+		DBName: "Test",
+	}, nil
 }
 
-func (db *Database) Find(condition interface{}, value interface{}) error {
-	return db.DB.First(value, condition).Error
-}
-func (db *Database) Create(value interface{}) error {
-	err := db.DB.Create(value).Error
+func (db *Database) Find(condition interface{}, value entity.BaseEntity) error {
+	collection := db.Client.Database(db.DBName).Collection(value.CollectionName())
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+
+	err := collection.FindOne(ctx, condition).Decode(value)
 	return err
+}
+func (db *Database) Create(value entity.BaseEntity) (interface{}, error) {
+	collection := db.Client.Database(db.DBName).Collection(value.CollectionName())
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	res, err := collection.InsertOne(ctx, value)
+
+	return res.InsertedID, err
 }

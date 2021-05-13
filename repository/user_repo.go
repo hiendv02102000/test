@@ -15,10 +15,10 @@ func (u *UserRepository) FindUser(condition entity.Users) (entity.Users, error) 
 
 	return user, err
 }
-func (u *UserRepository) CreateUser(user entity.Users) (entity.Users, error) {
-	err := u.DB.Create(&user)
+func (u *UserRepository) CreateUser(user entity.Users) (entity.Users, interface{}, error) {
+	uID, err := u.DB.Create(&user)
 	if err != nil {
-		return entity.Users{}, err
+		return entity.Users{}, uID, err
 	}
-	return user, nil
+	return user, uID, nil
 }

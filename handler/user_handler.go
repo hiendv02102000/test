@@ -1,15 +1,16 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"test/db"
 	"test/dto"
 	"test/repository"
 	"test/usecase"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type HTTPHandler struct {
@@ -21,15 +22,18 @@ func NewHTTPHandler(db db.Database) *HTTPHandler {
 	usersUsecase := usecase.UserUsecase{Repo: usersRepository}
 	return &HTTPHandler{usecase: usersUsecase}
 }
-func (h *HTTPHandler) GetUserProfile(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("id"))
+func (h *HTTPHandler) GetUserProfile(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("content-type", "application/json")
+	params := mux.Vars(request)
+	userID, err := primitive.ObjectIDFromHex(params["id"])
 	if err != nil {
 		data := dto.BaseResponse{
 			Status: http.StatusBadRequest,
 			Result: nil,
 			Error:  err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, data)
+		response.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(response).Encode(data)
 		return
 	}
 	res, err := h.usecase.GetUser(userID)
@@ -38,39 +42,45 @@ func (h *HTTPHandler) GetUserProfile(c *gin.Context) {
 			Status: http.StatusBadRequest,
 			Error:  err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, data)
+		response.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(response).Encode(data)
 		return
 	}
 	data := dto.BaseResponse{
 		Status: http.StatusOK,
 		Result: res,
 	}
-	c.JSON(http.StatusOK, data)
+	response.WriteHeader(http.StatusOK)
+	json.NewEncoder(response).Encode(data)
 }
-func (h *HTTPHandler) CreateNewUser(c *gin.Context) {
+func (h *HTTPHandler) CreateNewUser(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("content-type", "application/json")
 	req := dto.CreateUserRequest{}
-	err := c.ShouldBind(&req)
+	err := json.NewDecoder(request.Body).Decode(&req)
 	if err != nil {
 		data := dto.BaseResponse{
 			Status: http.StatusBadRequest,
 			Result: nil,
 			Error:  err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, data)
+		response.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(response).Encode(data)
 		return
 	}
-	err = h.usecase.CreateUser(req)
+	res, err := h.usecase.CreateUser(req)
 	if err != nil {
 		data := dto.BaseResponse{
 			Status: http.StatusBadRequest,
 			Error:  fmt.Sprint(err),
 		}
-		c.JSON(http.StatusBadRequest, data)
+		response.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(response).Encode(data)
 		return
 	}
 	data := dto.BaseResponse{
 		Status: http.StatusOK,
-		Result: "Success",
+		Result: res,
 	}
-	c.JSON(http.StatusOK, data)
+	response.WriteHeader(http.StatusOK)
+	json.NewEncoder(response).Encode(data)
 }

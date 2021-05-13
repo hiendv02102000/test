@@ -1,13 +1,13 @@
 package main
 
 import (
+	"net/http"
 	"test/router"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-
 	r := router.NewRouter()
-	r.Engine.Run(":8080")
+	http.ListenAndServe(":8080", r.R)
 }

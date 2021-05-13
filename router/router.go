@@ -4,23 +4,20 @@ import (
 	"test/db"
 	"test/handler"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
 )
 
 type Router struct {
-	Engine *gin.Engine
-	DB     db.Database
+	R  *mux.Router
+	DB db.Database
 }
 
 func (r *Router) Setup() {
-	r.Engine = gin.Default()
+	r.R = mux.NewRouter()
 	r.DB, _ = db.NewDB()
 	h := handler.NewHTTPHandler(r.DB)
-	userWeb := r.Engine.Group("/user")
-	{
-		userWeb.GET("/:id", h.GetUserProfile)
-		userWeb.POST("/create", h.CreateNewUser)
-	}
+	r.R.HandleFunc("/user/create", h.CreateNewUser).Methods("POST")
+	r.R.HandleFunc("/user/{id}", h.GetUserProfile).Methods("GET")
 }
 func NewRouter() Router {
 	var r Router
