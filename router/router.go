@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"test/db"
 	"test/handler"
 
@@ -12,18 +13,25 @@ type Router struct {
 	DB     db.Database
 }
 
-func (r *Router) Setup() {
+func (r *Router) Setup() error {
 	r.Engine = gin.Default()
 	r.DB, _ = db.NewDB()
+	err := r.DB.MigrationDB()
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
 	h := handler.NewHTTPHandler(r.DB)
 	userWeb := r.Engine.Group("/user")
 	{
 		userWeb.GET("/:id", h.GetUserProfile)
 		userWeb.POST("/create", h.CreateNewUser)
 	}
+	return nil
 }
 func NewRouter() Router {
 	var r Router
 	r.Setup()
+
 	return r
 }
