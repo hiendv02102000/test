@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"test/db"
 	"test/handler"
 	"test/middleware"
@@ -16,12 +17,12 @@ type Router struct {
 func (r *Router) Setup() {
 	r.Engine = gin.Default()
 	r.DB, _ = db.NewDB()
-	r.DB.MigrateDBWithGorm()
-	//err := r.DB.MigrateDB()
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
+	//r.DB.MigrateDBWithGorm()
+	err := r.DB.MigrateDB()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	h := handler.NewHTTPHandler(r.DB)
 	appAPI := r.Engine.Group("/app")
 	{
@@ -35,7 +36,7 @@ func (r *Router) Setup() {
 			userAPI.Use(middleware.AuthAdminMiddleware(r.DB))
 			{
 				userAPI.DELETE("/delete", h.DeleteUser)
-				userAPI.GET("/user_list", h.GetUserListProfile)
+				userAPI.GET("/profile_list", h.GetProfileList)
 				userAPI.PATCH("/update", h.UpdateUser)
 			}
 

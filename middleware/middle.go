@@ -40,7 +40,7 @@ func AuthClientMiddleware(db db.Database) gin.HandlerFunc {
 		repo := repository.UserRepository{
 			DB: db,
 		}
-		user, err := repo.FindUser(entity.Users{
+		user, err := repo.FirstUser(entity.Users{
 			Token: &clientToken,
 		})
 
@@ -79,9 +79,7 @@ func AuthClientMiddleware(db db.Database) gin.HandlerFunc {
 }
 
 func AuthAdminMiddleware(db db.Database) gin.HandlerFunc {
-
 	return func(c *gin.Context) {
-
 		clientToken := c.GetHeader("Authorization")
 		if clientToken == "" {
 			data := dto.BaseResponse{
@@ -97,7 +95,7 @@ func AuthAdminMiddleware(db db.Database) gin.HandlerFunc {
 		repo := repository.UserRepository{
 			DB: db,
 		}
-		user, err := repo.FindUser(entity.Users{
+		user, err := repo.FirstUser(entity.Users{
 			Token: &clientToken,
 		})
 

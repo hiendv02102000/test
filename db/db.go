@@ -19,7 +19,6 @@ type Database struct {
 func NewDB() (Database, error) {
 	dsn := "go_test:go_test@tcp(127.0.0.1:3306)/go_test?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open("mysql", dsn)
-
 	return Database{
 		DB: db,
 	}, err
@@ -29,7 +28,6 @@ func (db *Database) MigrateDB() error {
 	if err != nil {
 		return err
 	}
-
 	m, err := migrate.NewWithDatabaseInstance(
 		"file:///"+"test/migrations",
 		"mysql", driver)
@@ -38,14 +36,6 @@ func (db *Database) MigrateDB() error {
 	}
 	err = m.Up()
 	if err != nil {
-		currentVer, dirty, _ := m.Version()
-		if dirty {
-			if currentVer == 1 {
-				_ = m.Force(-1)
-			} else {
-				_ = m.Force(int(currentVer) - 1)
-			}
-		}
 		return err
 	}
 	return nil
@@ -53,14 +43,14 @@ func (db *Database) MigrateDB() error {
 func (db *Database) MigrateDBWithGorm() {
 	db.DB.AutoMigrate()
 }
-func (db *Database) Find(condition interface{}, value interface{}) error {
+func (db *Database) First(condition interface{}, value interface{}) error {
 	err := db.DB.First(value, condition).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return nil
 	}
 	return err
 }
-func (db *Database) FindAll(condition interface{}, value interface{}) error {
+func (db *Database) Find(condition interface{}, value interface{}) error {
 	err := db.DB.Find(value, condition).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return nil

@@ -9,14 +9,13 @@ type UserRepository struct {
 	DB db.Database
 }
 
-func (u *UserRepository) FindUser(condition entity.Users) (entity.Users, error) {
+func (u *UserRepository) FirstUser(condition entity.Users) (entity.Users, error) {
 	user := entity.Users{}
-	err := u.DB.Find(condition, &user)
+	err := u.DB.First(condition, &user)
 	return user, err
 }
 func (u *UserRepository) FindUserList(condition entity.Users) (user []entity.Users, err error) {
-
-	err = u.DB.FindAll(condition, &user)
+	err = u.DB.Find(condition, &user)
 	return
 }
 func (u *UserRepository) CreateUser(user entity.Users) (entity.Users, error) {
@@ -33,4 +32,9 @@ func (u *UserRepository) DeleteUser(user entity.Users) error {
 func (u *UserRepository) UpdateUser(user, oldUser entity.Users) error {
 	err := u.DB.Update(entity.Users{}, &oldUser, &user)
 	return err
+}
+func NewUserRepository(db db.Database) *UserRepository {
+	return &UserRepository{
+		DB: db,
+	}
 }

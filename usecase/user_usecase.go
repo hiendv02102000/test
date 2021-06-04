@@ -12,11 +12,11 @@ import (
 )
 
 type UserUsecase struct {
-	Repo repository.UserRepository
+	Repo repository.UserRepositoryInterface
 }
 
 func (u *UserUsecase) GetUserTokenLogin(req dto.LoginRequest) (dto.LoginResponse, error) {
-	user, err := u.Repo.FindUser(entity.Users{
+	user, err := u.Repo.FirstUser(entity.Users{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -54,9 +54,8 @@ func (u *UserUsecase) GetUserTokenLogin(req dto.LoginRequest) (dto.LoginResponse
 	}, nil
 }
 
-func (u *UserUsecase) GetUser(id int) (dto.GetUserResponse, error) {
-
-	user, err := u.Repo.FindUser(entity.Users{
+func (u *UserUsecase) GetProfile(id int) (dto.GetUserResponse, error) {
+	user, err := u.Repo.FirstUser(entity.Users{
 		ID: id,
 	})
 
@@ -79,7 +78,7 @@ func (u *UserUsecase) GetUser(id int) (dto.GetUserResponse, error) {
 }
 
 func (u *UserUsecase) CreateUser(req dto.CreateUserRequest) error {
-	user, err := u.Repo.FindUser(entity.Users{
+	user, err := u.Repo.FirstUser(entity.Users{
 		Email: req.Email,
 	})
 	if err != nil {
@@ -88,7 +87,7 @@ func (u *UserUsecase) CreateUser(req dto.CreateUserRequest) error {
 	if user.ID != 0 {
 		return errors.New("Email is already exist")
 	}
-	err = u.Repo.DB.Create(&entity.Users{
+	_, err = u.Repo.CreateUser(entity.Users{
 		Email:      req.Email,
 		Password:   req.Password,
 		Decription: req.Decription,
@@ -97,7 +96,7 @@ func (u *UserUsecase) CreateUser(req dto.CreateUserRequest) error {
 
 }
 func (u *UserUsecase) DeleteUser(req dto.DeleteUserRequest) error {
-	user, err := u.Repo.FindUser(entity.Users{
+	user, err := u.Repo.FirstUser(entity.Users{
 		Email: req.UserEmail,
 	})
 	if err != nil {
@@ -113,7 +112,7 @@ func (u *UserUsecase) DeleteUser(req dto.DeleteUserRequest) error {
 //
 func (u *UserUsecase) PatchUpdateUser(req dto.UserUpdateRequest) error {
 
-	user, err := u.Repo.FindUser(entity.Users{
+	user, err := u.Repo.FirstUser(entity.Users{
 		Email: req.Email,
 	})
 
@@ -144,9 +143,7 @@ func (u *UserUsecase) PatchUpdateUser(req dto.UserUpdateRequest) error {
 	return nil
 }
 
-//
-
-func (u *UserUsecase) GetUserList() (dto.GetListUserResponse, error) {
+func (u *UserUsecase) GetProfileList() (dto.GetListUserResponse, error) {
 
 	userList, err := u.Repo.FindUserList(entity.Users{})
 	if err != nil {
@@ -193,4 +190,8 @@ func (u *UserUsecase) GetUserList() (dto.GetListUserResponse, error) {
 		NPage:    len(pageList),
 		PageList: pageList,
 	}, nil
+}
+
+func NewUserUsecase(repo repository.UserRepositoryInterface) *UserUsecase {
+	return &UserUsecase{Repo: repo}
 }

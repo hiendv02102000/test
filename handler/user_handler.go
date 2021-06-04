@@ -13,14 +13,15 @@ import (
 )
 
 type HTTPHandler struct {
-	usecase usecase.UserUsecase
+	usecase usecase.UserUseCaseInterface
 }
 
 func NewHTTPHandler(db db.Database) *HTTPHandler {
-	usersRepository := repository.UserRepository{DB: db}
-	usersUsecase := usecase.UserUsecase{Repo: usersRepository}
+	usersRepository := repository.NewUserRepository(db)
+	usersUsecase := usecase.NewUserUsecase(usersRepository)
 	return &HTTPHandler{usecase: usersUsecase}
 }
+
 func (h *HTTPHandler) Login(c *gin.Context) {
 	req := dto.LoginRequest{}
 	err := c.ShouldBind(&req)
@@ -48,11 +49,11 @@ func (h *HTTPHandler) Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, data)
 }
-///
+
 func (h *HTTPHandler) GetUserProfile(c *gin.Context) {
 	user := middleware.GetUserFromContext(c)
 	userID := user.ID
-	res, err := h.usecase.GetUser(userID)
+	res, err := h.usecase.GetProfile(userID)
 	if err != nil {
 		data := dto.BaseResponse{
 			Status: http.StatusBadRequest,
@@ -67,7 +68,7 @@ func (h *HTTPHandler) GetUserProfile(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, data)
 }
-///
+
 func (h *HTTPHandler) UpdateUser(c *gin.Context) {
 	req := dto.UserUpdateRequest{}
 	err := c.ShouldBind(&req)
@@ -96,7 +97,7 @@ func (h *HTTPHandler) UpdateUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, data)
 }
-///
+
 func (h *HTTPHandler) CreateNewUser(c *gin.Context) {
 	req := dto.CreateUserRequest{}
 	err := c.ShouldBind(&req)
@@ -124,7 +125,7 @@ func (h *HTTPHandler) CreateNewUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, data)
 }
-///
+
 func (h *HTTPHandler) DeleteUser(c *gin.Context) {
 	req := dto.DeleteUserRequest{}
 	err := c.ShouldBind(&req)
@@ -152,9 +153,9 @@ func (h *HTTPHandler) DeleteUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, data)
 }
-//
-func (h *HTTPHandler) GetUserListProfile(c *gin.Context) {
-	res, err := h.usecase.GetUserList()
+
+func (h *HTTPHandler) GetProfileList(c *gin.Context) {
+	res, err := h.usecase.GetProfileList()
 	if err != nil {
 		data := dto.BaseResponse{
 			Status: http.StatusBadRequest,
@@ -168,5 +169,4 @@ func (h *HTTPHandler) GetUserListProfile(c *gin.Context) {
 		Result: res,
 	}
 	c.JSON(http.StatusOK, data)
-	
 }
