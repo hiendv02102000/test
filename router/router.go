@@ -17,7 +17,7 @@ type Router struct {
 func (r *Router) Setup() {
 	r.Engine = gin.Default()
 	r.DB, _ = db.NewDB()
-	//r.DB.MigrateDBWithGorm()
+	r.DB.MigrateDBWithGorm()
 	err := r.DB.MigrateDB()
 	if err != nil {
 		fmt.Println(err)
