@@ -20,18 +20,14 @@ func (u *UserRepository) FindUserList(condition entity.Users) (user []entity.Use
 }
 func (u *UserRepository) CreateUser(user entity.Users) (entity.Users, error) {
 	err := u.DB.Create(&user)
-	if err != nil {
-		return entity.Users{}, err
-	}
-	return user, nil
+	return user, err
 }
 func (u *UserRepository) DeleteUser(user entity.Users) error {
 	err := u.DB.Delete(&user)
 	return err
 }
 func (u *UserRepository) UpdateUser(user, oldUser entity.Users) error {
-	err := u.DB.Update(entity.Users{}, &oldUser, &user)
-	return err
+	return u.DB.Update(entity.Users{}, &oldUser, &user)
 }
 func NewUserRepository(db db.Database) *UserRepository {
 	return &UserRepository{
