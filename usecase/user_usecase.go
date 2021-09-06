@@ -16,6 +16,7 @@ type UserUsecaseInterface interface {
 	GetUser(id int) (dto.GetUserResponse, error)
 	CreateUser(req dto.RegisterUserRequest) error
 	Login(req dto.LoginRequest) (dto.LoginResponse, error)
+	DeleteUser(req dto.DeleteUserRequest) error
 }
 type userUsecase struct {
 	repo repository.UserRepositoryInterface
@@ -35,34 +36,32 @@ func (u *userUsecase) GetUser(id int) (dto.GetUserResponse, error) {
 	}, nil
 }
 func (u *userUsecase) CreateUser(req dto.RegisterUserRequest) error {
-	user, err := u.repo.FirstUser(entity.Users{
+	_, err := u.repo.FirstUser(entity.Users{
 		Email: req.Email,
 	})
-	if err.Error() == "record not found" {
+	if gorm.IsRecordNotFoundError(err) {
 		_, err = u.repo.CreateUser(entity.Users{
 			Username: req.Username,
 			Email:    req.Email,
 			Password: req.Password,
+			Admin:    false,
 		})
 		return err
 	}
-	if user.ID != 0 {
-		return errors.New("Email is already exist")
-	}
-	return err
+	return errors.New("Email already exist")
 }
 func (u *userUsecase) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 	user, err := u.repo.FirstUser(entity.Users{
 		Email:    req.Email,
 		Password: req.Password,
 	})
+
 	if gorm.IsRecordNotFoundError(err) {
 		return dto.LoginResponse{}, errors.New("email or password is invalid")
 	}
 	if err != nil {
 		return dto.LoginResponse{}, err
 	}
-
 	timeNow := time.Now()
 	timeExpriedAt := timeNow.Add(time.Hour * 168)
 	uuid := uuid.Must(uuid.NewV4(), nil)
@@ -83,6 +82,20 @@ func (u *userUsecase) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 		return dto.LoginResponse{}, err
 	}
 	return dto.LoginResponse{Token: tokenString}, nil
+}
+
+func (u *userUsecase) DeleteUser(req dto.DeleteUserRequest) error {
+	user, err := u.repo.FirstUser(entity.Users{
+		Email: req.Email,
+	})
+	if err != nil {
+		return err
+	}
+	if user.Admin {
+		return errors.New("Admin can't delete")
+	}
+	err = u.repo.DeleteUser(user)
+	return err
 }
 func NewUserUsecase(r repository.UserRepositoryInterface) *userUsecase {
 	return &userUsecase{repo: r}

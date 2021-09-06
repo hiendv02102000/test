@@ -1,9 +1,9 @@
 package router
 
 import (
-	"fmt"
 	"test/db"
 	"test/handler"
+	"test/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,24 +14,41 @@ type Router struct {
 }
 
 func (r *Router) Setup() error {
-	r.Engine = gin.Default()
-	DB, err := db.NewDB()
-	r.DB = DB
+	err := r.DB.MigrationDB()
 	if err != nil {
-		fmt.Print(err)
 		return err
 	}
 	h := handler.NewHTTPHandler(r.DB)
-	userWeb := r.Engine.Group("/user")
+	webAPI := r.Engine.Group("/web")
 	{
-		userWeb.GET("/:id", h.GetUserProfile)
-		userWeb.POST("/register", h.RegisterUser)
+
+		webAPI.POST("/login", h.Login)
+		webAPI.POST("/register", h.RegisterUser)
+	}
+	userAPI := r.Engine.Group("/user")
+	{
+		userAPI.Use(middleware.AuthMiddleware(r.DB))
+		{
+			userAPI.GET("/:id", h.GetUserProfile)
+			adminAPI := userAPI.Group("/admin")
+			{
+				adminAPI.Use(middleware.AuthAdminMiddleware())
+				{
+					adminAPI.DELETE("/delete", h.DeleteUser)
+				}
+
+			}
+		}
+
 	}
 	return nil
 }
-func NewRouter() Router {
-	var r Router
-	r.Setup()
+func NewRouter() *Router {
+	engine := gin.Default()
+	db, err := db.NewDB()
+	if err != nil {
+		return nil
+	}
 
-	return r
+	return &Router{Engine: engine, DB: db}
 }

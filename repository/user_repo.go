@@ -26,7 +26,7 @@ func (u *userRepository) CreateUser(user entity.Users) (entity.Users, error) {
 	return user, err
 }
 func (u *userRepository) UpdateUser(oldUser, newUser entity.Users) error {
-	return u.DB.Update(oldUser, newUser, entity.Users{})
+	return u.DB.Update(&oldUser, &newUser, entity.Users{})
 }
 func (u *userRepository) DeleteUser(user entity.Users) error {
 	return u.DB.Delete(user)
