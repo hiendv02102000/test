@@ -1,18 +1,9 @@
 package db
 
 import (
-	"fmt"
+	"test/entity"
 
 	"github.com/jinzhu/gorm"
-
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
-
-	// import source file
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-
-	// import mysql driver
-	_ "github.com/go-sql-driver/mysql"
 )
 
 type Database struct {
@@ -28,43 +19,19 @@ func NewDB() (Database, error) {
 	}, err
 
 }
-
-func (db *Database) Find(condition interface{}, value interface{}) error {
+func (db *Database) MigrationDB() error {
+	return db.DB.AutoMigrate(entity.Users{}).Error
+}
+func (db *Database) First(condition interface{}, value interface{}) error {
 	return db.DB.First(value, condition).Error
-
 }
 func (db *Database) Create(value interface{}) error {
 	err := db.DB.Create(value).Error
 	return err
 }
-func (db *Database) MigrationDB() error {
-	driver, err := mysql.WithInstance(db.DB.DB(), &mysql.Config{})
-	if err != nil {
-		return err
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(
-		"file:test/db/migrations",
-		"mysql", driver)
-	if err != nil {
-		fmt.Println(err.Error() + "12345")
-		return err
-	}
-
-	// return m.Force(-1)
-	err = m.Up()
-	if err != nil {
-		currentVer, dirty, _ := m.Version()
-		if dirty {
-			if currentVer == 1 {
-				_ = m.Force(-1)
-			} else {
-				_ = m.Force(int(currentVer) - 1)
-			}
-		}
-
-		return err
-	}
-
-	return nil
+func (db *Database) Delete(value interface{}) error {
+	return db.DB.Delete(value).Error
+}
+func (db *Database) Update(oldVal, newVal, model interface{}) error {
+	return db.DB.Model(model).Where(oldVal).Update(newVal).Error
 }

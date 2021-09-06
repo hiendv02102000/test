@@ -13,12 +13,12 @@ import (
 )
 
 type HTTPHandler struct {
-	usecase usecase.UserUsecase
+	usecase usecase.UserUsecaseInterface
 }
 
 func NewHTTPHandler(db db.Database) *HTTPHandler {
-	usersRepository := repository.UserRepository{DB: db}
-	usersUsecase := usecase.UserUsecase{Repo: usersRepository}
+	usersRepository := repository.NewUserRepository(db)
+	usersUsecase := usecase.NewUserUsecase(usersRepository)
 	return &HTTPHandler{usecase: usersUsecase}
 }
 func (h *HTTPHandler) GetUserProfile(c *gin.Context) {
@@ -47,8 +47,8 @@ func (h *HTTPHandler) GetUserProfile(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, data)
 }
-func (h *HTTPHandler) CreateNewUser(c *gin.Context) {
-	req := dto.CreateUserRequest{}
+func (h *HTTPHandler) RegisterUser(c *gin.Context) {
+	req := dto.RegisterUserRequest{}
 	err := c.ShouldBind(&req)
 	if err != nil {
 		data := dto.BaseResponse{

@@ -15,17 +15,17 @@ type Router struct {
 
 func (r *Router) Setup() error {
 	r.Engine = gin.Default()
-	r.DB, _ = db.NewDB()
-	err := r.DB.MigrationDB()
+	DB, err := db.NewDB()
+	r.DB = DB
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Print(err)
 		return err
 	}
 	h := handler.NewHTTPHandler(r.DB)
 	userWeb := r.Engine.Group("/user")
 	{
 		userWeb.GET("/:id", h.GetUserProfile)
-		userWeb.POST("/create", h.CreateNewUser)
+		userWeb.POST("/register", h.RegisterUser)
 	}
 	return nil
 }

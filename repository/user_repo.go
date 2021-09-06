@@ -5,20 +5,32 @@ import (
 	"test/entity"
 )
 
-type UserRepository struct {
+type UserRepositoryInterface interface {
+	FirstUser(condition entity.Users) (entity.Users, error)
+	CreateUser(user entity.Users) (entity.Users, error)
+	UpdateUser(oldUser, newUser entity.Users) error
+	DeleteUser(user entity.Users) error
+}
+
+type userRepository struct {
 	DB db.Database
 }
 
-func (u *UserRepository) FindUser(condition entity.Users) (entity.Users, error) {
+func (u *userRepository) FirstUser(condition entity.Users) (entity.Users, error) {
 	user := entity.Users{}
-	err := u.DB.Find(condition, &user)
-
+	err := u.DB.First(condition, &user)
 	return user, err
 }
-func (u *UserRepository) CreateUser(user entity.Users) (entity.Users, error) {
+func (u *userRepository) CreateUser(user entity.Users) (entity.Users, error) {
 	err := u.DB.Create(&user)
-	if err != nil {
-		return entity.Users{}, err
-	}
-	return user, nil
+	return user, err
+}
+func (u *userRepository) UpdateUser(oldUser, newUser entity.Users) error {
+	return u.DB.Update(oldUser, newUser, entity.Users{})
+}
+func (u *userRepository) DeleteUser(user entity.Users) error {
+	return u.DB.Delete(user)
+}
+func NewUserRepository(db db.Database) *userRepository {
+	return &userRepository{DB: db}
 }
