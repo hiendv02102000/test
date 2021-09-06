@@ -114,6 +114,7 @@ func (h *HTTPHandler) DeleteUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, data)
 		return
 	}
+
 	err = h.usecase.DeleteUser(req)
 	if err != nil {
 		data := dto.BaseResponse{

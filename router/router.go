@@ -4,6 +4,7 @@ import (
 	"test/db"
 	"test/handler"
 	"test/middleware"
+	"test/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,10 +19,10 @@ func (r *Router) Setup() error {
 	if err != nil {
 		return err
 	}
+	utils.NewValidate()
 	h := handler.NewHTTPHandler(r.DB)
 	webAPI := r.Engine.Group("/web")
 	{
-
 		webAPI.POST("/login", h.Login)
 		webAPI.POST("/register", h.RegisterUser)
 	}
@@ -49,6 +50,5 @@ func NewRouter() *Router {
 	if err != nil {
 		return nil
 	}
-
 	return &Router{Engine: engine, DB: db}
 }
